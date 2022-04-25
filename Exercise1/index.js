@@ -2,6 +2,8 @@ var myAjax = new XMLHttpRequest();
 myAjax.open("GET", "https://s3.amazonaws.com/CMSTest/squaw_creek_container_info.xml", false);
 myAjax.send();
 var xmlDocument = myAjax.responseXML;
+
+console.log('xml', xmlDocument);
 //Get Object
 function getAllPoints() {
     var allPoint = {};
