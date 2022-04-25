@@ -1,9 +1,7 @@
 var myAjax = new XMLHttpRequest();
-myAjax.open("GET", "squaw_creek_container_info.xml", false);
-myAjax.setRequestHeader("Content-Type", "squaw_creek_container_info.xml");
-myAjax.send(null);
+myAjax.open("GET", "https://s3.amazonaws.com/CMSTest/squaw_creek_container_info.xml", false);
+myAjax.send();
 var xmlDocument = myAjax.responseXML;
-
 //Get Object
 function getAllPoints() {
     var allPoint = {};
@@ -23,6 +21,7 @@ function getAllLines() {
     return allLine;
 }
 
+
 function getAllFaces() {
     var allPolygon = {};
     var point = xmlDocument.getElementsByTagName("POLYGON");
@@ -31,7 +30,6 @@ function getAllFaces() {
     }
     return allPolygon;
 }
-
 function getArrFaces() {
     var allFace = [];
     var faces = xmlDocument.getElementsByTagName("POLYGON");
@@ -111,7 +109,6 @@ function getLinesOfFace(face) {
 //Draw an entity
 
 function showPoint(i, arrDataPoint) {
-    var viewer;
     viewer.entities.add({
         name: i,
         position: Cesium.Cartesian3.fromDegrees(arrDataPoint[0], arrDataPoint[1], arrDataPoint[2]),
@@ -119,7 +116,6 @@ function showPoint(i, arrDataPoint) {
     });
 }
 function showPolyline(i, newPoint1, newPoint2) {
-    var viewer;
     viewer.entities.add({
         name: i,
         polyline: {
@@ -135,9 +131,8 @@ function showPolyline(i, newPoint1, newPoint2) {
 
 //Event Handler
 
-function showPolygon(name, i, temp) {
+function showPolygon(name, i) {
     const arrCoordinates = arrayCoordinates();
-    var viewer;
     viewer.entities.add({
         name: name + i,
         polygon: {
@@ -150,8 +145,6 @@ function showPolygon(name, i, temp) {
     });
 
 }
-
-// console.log('length', getFaces().length);
 
 function getFaces() {
     const faces = getAllFaces();
@@ -167,8 +160,8 @@ function getFaces() {
 function drawPoints() {
     const points = getAllPoints();
     for (var i in points) {
-        var arrDataPoint = points[i].split(', ')
-        showPoint(i, arrDataPoint)
+        var arrDataPoint = points[i].split(', ');
+        showPoint(i, arrDataPoint);
     }
 }
 
@@ -200,19 +193,16 @@ function setColor() {
     }
 }
 function drawFaces() {
-    setColor()
+    setColor();
     var tempId;
-    var viewer;
     viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement) {
         if (tempId !== undefined) {
-            console.log('tempID: ', tempId);
             tempId.polygon.material = Cesium.Color.GRAY.withAlpha(0.5);
         }
         var pickedFeature = viewer.scene.pick(movement.position);
         tempId = pickedFeature.id;
         for (var i in getArrFaces()) {
             if (pickedFeature.id.name === getArrFaces()[i]) {
-                console.log('tempID2: ', pickedFeature.id);
                 pickedFeature.id.polygon.material = Cesium.Color.RED.withAlpha(0.5);
                 return;
             }
