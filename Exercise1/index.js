@@ -23,7 +23,6 @@ function getAllLines() {
     return allLine;
 }
 
-
 function getAllFaces() {
     var allPolygon = {};
     var point = xmlDocument.getElementsByTagName("POLYGON");
@@ -32,6 +31,7 @@ function getAllFaces() {
     }
     return allPolygon;
 }
+
 function getArrFaces() {
     var allFace = [];
     var faces = xmlDocument.getElementsByTagName("POLYGON");
@@ -76,7 +76,7 @@ function arrayCoordinates() {
     for (var i = 0; i < temp.length; i++) {
         var temp1 = [];
         for (var j = 0; j < temp[i].length; j++) {
-            for (k in points) {
+            for (var k in points) {
                 if (temp[i][j] === k) {
                     temp1.push(points[k].split(', '));
                 }
@@ -98,21 +98,6 @@ function arrayCoordinates() {
     return newArrCoordinates;
 }
 
-function arrayLines() {
-    var temp = [];
-    for (var i = 0; i < arrayFaces().length; i++) {
-        var temp1 = [];
-        for (var j = 0; j < arrayFaces()[i].length; j++) {
-            var temp2 = getLinesOfFace(arrayFaces()[i][j]).split(', ');
-            for (var k = 0; k < temp2.length; k++) {
-                temp1.push(temp2[k]);
-            }
-        }
-        temp.push(temp1);
-    }
-    return temp;
-}
-
 function getLinesOfFace(face) {
     const lines = getAllLines();
     for (var i in lines) {
@@ -126,6 +111,7 @@ function getLinesOfFace(face) {
 //Draw an entity
 
 function showPoint(i, arrDataPoint) {
+    var viewer;
     viewer.entities.add({
         name: i,
         position: Cesium.Cartesian3.fromDegrees(arrDataPoint[0], arrDataPoint[1], arrDataPoint[2]),
@@ -133,6 +119,7 @@ function showPoint(i, arrDataPoint) {
     });
 }
 function showPolyline(i, newPoint1, newPoint2) {
+    var viewer;
     viewer.entities.add({
         name: i,
         polyline: {
@@ -150,6 +137,7 @@ function showPolyline(i, newPoint1, newPoint2) {
 
 function showPolygon(name, i, temp) {
     const arrCoordinates = arrayCoordinates();
+    var viewer;
     viewer.entities.add({
         name: name + i,
         polygon: {
@@ -165,16 +153,6 @@ function showPolygon(name, i, temp) {
 
 // console.log('length', getFaces().length);
 
-function findFace(theFace) {
-    console.log(theFace);
-    for (var i = 0; i < getFaces().length; i++) {
-        if (theFace === i) {
-            console.log(i + ":", i);
-            console.log(theFace + ":", theFace);
-            return getFaces()[i];
-        }
-    }
-}
 function getFaces() {
     const faces = getAllFaces();
     const arrLineOfFace = [];
@@ -189,7 +167,6 @@ function getFaces() {
 function drawPoints() {
     const points = getAllPoints();
     for (var i in points) {
-        dataPoint = points[i];
         var arrDataPoint = points[i].split(', ')
         showPoint(i, arrDataPoint)
     }
@@ -225,6 +202,7 @@ function setColor() {
 function drawFaces() {
     setColor()
     var tempId;
+    var viewer;
     viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement) {
         if (tempId !== undefined) {
             console.log('tempID: ', tempId);
@@ -232,7 +210,7 @@ function drawFaces() {
         }
         var pickedFeature = viewer.scene.pick(movement.position);
         tempId = pickedFeature.id;
-        for (i in getArrFaces()) {
+        for (var i in getArrFaces()) {
             if (pickedFeature.id.name === getArrFaces()[i]) {
                 console.log('tempID2: ', pickedFeature.id);
                 pickedFeature.id.polygon.material = Cesium.Color.RED.withAlpha(0.5);
