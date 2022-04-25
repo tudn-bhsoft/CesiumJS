@@ -13,6 +13,9 @@
 
 <body>
     <div id="cesiumContainer"></div>
+    <!-- <button id="showFace" onclick="clickButton(this)">
+        Show Face
+    </button> -->
     <script>
         const viewer = new Cesium.Viewer('cesiumContainer', {
             terrainProvider: Cesium.createWorldTerrain()
@@ -25,12 +28,35 @@
                 pitch: Cesium.Math.toRadians(-90.0),
             }
         });
-        // const osmBuildings = viewer.scene.primitives.add(Cesium.createOsmBuildings());
+        const osmBuildings = viewer.scene.primitives.add(Cesium.createOsmBuildings());
 
+        // document.getElementById("showFace").addEventListener("click", show);
+        // function show() {
+        //     const element = document.getElementById("showFace");
+        //     element.id = 'hideFace'
+        //     document.getElementById("hideFace").innerHTML = "Hide Face";
+        // }
+
+        // function clickButton(obj) {
+        //     if (obj.id === "showFace") {
+        //         obj.id = "hideFace";
+        //         obj.innerHTML = "Hide Face";
+        //         drawFaces();
+        //         return;
+        //     }
+        //     if (obj.id === "hideFace") {
+        //         obj.id = "showFace";
+        //         obj.innerHTML = "Show Face";
+        //         hideFaces();
+        //         return;
+        //     }
+        // }
+        drawFaces();
         drawPoints();
         drawLines();
-        drawFaces();
+
     </script>
+
     </div>
 
 </body>

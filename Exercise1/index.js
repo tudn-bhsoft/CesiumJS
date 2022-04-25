@@ -3,6 +3,7 @@ myAjax.open("GET", "squaw_creek_container_info.xml", false);
 myAjax.setRequestHeader("Content-Type", "squaw_creek_container_info.xml");
 myAjax.send(null);
 var xmlDocument = myAjax.responseXML;
+
 //Get Object
 function getAllPoints() {
     var allPoint = {};
@@ -31,9 +32,17 @@ function getAllFaces() {
     }
     return allPolygon;
 }
-
+function getArrFaces() {
+    var allFace = [];
+    var faces = xmlDocument.getElementsByTagName("POLYGON");
+    for (var i = 0; i < faces.length; i++) {
+        allFace.push('F' + i);
+    }
+    return allFace;
+}
 //-------------------------------------------------------------------------
-//Trả về mảng các face (gồm mảng các line)
+//Get Corrdinates
+//Return array lines of face
 function arrayFaces() {
     const faces = getAllFaces();
     const arrLineOfFace = [];
@@ -43,7 +52,7 @@ function arrayFaces() {
     return arrLineOfFace;
 }
 
-//Trả về mảng các face(gồm mảng các point)
+//Return array points of face
 function arrayLines() {
     var temp = [];
     for (var i = 0; i < arrayFaces().length; i++) {
@@ -58,7 +67,7 @@ function arrayLines() {
     }
     return temp;
 }
-//Trả về mảng các face (gồm mảng các coordinate)
+//Return array coordinates
 function arrayCoordinates() {
     var temp = arrayLines();
     const points = getAllPoints();
@@ -88,6 +97,7 @@ function arrayCoordinates() {
     }
     return newArrCoordinates;
 }
+
 function arrayLines() {
     var temp = [];
     for (var i = 0; i < arrayFaces().length; i++) {
@@ -113,17 +123,75 @@ function getLinesOfFace(face) {
 }
 
 //------------------------------------------------------------------------
-//Draw on CesiumJS
+//Draw an entity
+
+function showPoint(i, arrDataPoint) {
+    viewer.entities.add({
+        name: i,
+        position: Cesium.Cartesian3.fromDegrees(arrDataPoint[0], arrDataPoint[1], arrDataPoint[2]),
+        point: { pixelSize: 4, color: Cesium.Color.RED }
+    });
+}
+function showPolyline(i, newPoint1, newPoint2) {
+    viewer.entities.add({
+        name: i,
+        polyline: {
+            positions: Cesium.Cartesian3.fromDegreesArrayHeights([
+                newPoint1[0], newPoint1[1], newPoint1[2],
+                newPoint2[0], newPoint2[1], newPoint2[2],
+            ]),
+            width: 2,
+            material: Cesium.Color.BLACK,
+        },
+    });
+}
+
+//Event Handler
+
+function showPolygon(name, i, temp) {
+    const arrCoordinates = arrayCoordinates();
+    viewer.entities.add({
+        name: name + i,
+        polygon: {
+            hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(
+                arrCoordinates[i]
+            ),
+            material: Cesium.Color.GRAY.withAlpha(0.5),
+            perPositionHeight: true,
+        },
+    });
+
+}
+
+// console.log('length', getFaces().length);
+
+function findFace(theFace) {
+    console.log(theFace);
+    for (var i = 0; i < getFaces().length; i++) {
+        if (theFace === i) {
+            console.log(i + ":", i);
+            console.log(theFace + ":", theFace);
+            return getFaces()[i];
+        }
+    }
+}
+function getFaces() {
+    const faces = getAllFaces();
+    const arrLineOfFace = [];
+    for (var i in faces) {
+        arrLineOfFace.push(i);
+    }
+
+    return arrLineOfFace;
+}
+//------------------------------------------------------------------------
+//Draw all entity
 function drawPoints() {
     const points = getAllPoints();
     for (var i in points) {
         dataPoint = points[i];
         var arrDataPoint = points[i].split(', ')
-        viewer.entities.add({
-            name: i,
-            position: Cesium.Cartesian3.fromDegrees(arrDataPoint[0], arrDataPoint[1], arrDataPoint[2]),
-            point: { pixelSize: 5, color: Cesium.Color.RED }
-        });
+        showPoint(i, arrDataPoint)
     }
 }
 
@@ -146,33 +214,31 @@ function drawLines() {
                 newPoint2 = point2.split(', ');
             }
         }
-        viewer.entities.add({
-            name: i,
-            polyline: {
-                positions: Cesium.Cartesian3.fromDegreesArrayHeights([
-                    newPoint1[0], newPoint1[1], newPoint1[2],
-                    newPoint2[0], newPoint2[1], newPoint2[2],
-                ]),
-                width: 2,
-                material: Cesium.Color.RED,
-            },
-        });
+        showPolyline(i, newPoint1, newPoint2);
     }
+}
+function setColor() {
+    for (var i = 0; i < arrayFaces().length; i++) {
+        showPolygon('F', i);
+    }
+}
+function drawFaces() {
+    setColor()
+    var tempId;
+    viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement) {
+        if (tempId !== undefined) {
+            console.log('tempID: ', tempId);
+            tempId.polygon.material = Cesium.Color.GRAY.withAlpha(0.5);
+        }
+        var pickedFeature = viewer.scene.pick(movement.position);
+        tempId = pickedFeature.id;
+        for (i in getArrFaces()) {
+            if (pickedFeature.id.name === getArrFaces()[i]) {
+                console.log('tempID2: ', pickedFeature.id);
+                pickedFeature.id.polygon.material = Cesium.Color.RED.withAlpha(0.5);
+                return;
+            }
+        }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 }
 
-function drawFaces() {
-    const arrCoordinates = arrayCoordinates();
-    console.log(arrCoordinates);
-    for (var i = 0; i < arrayFaces().length; i++) {
-        viewer.entities.add({
-            name: 'F' + i,
-            polygon: {
-                hierarchy: Cesium.Cartesian3.fromDegreesArrayHeights(
-                    arrCoordinates[i]
-                ),
-                material: Cesium.Color.GREEN,
-                perPositionHeight: true,
-            },
-        });
-    }
-}
